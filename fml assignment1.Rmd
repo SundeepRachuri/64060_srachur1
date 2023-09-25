@@ -1,0 +1,70 @@
+---
+title: "FML ASSIGNMENT 1"
+author: "Sundeep Rachuri"
+date: "2023-09-24"
+output:
+  pdf_document: default
+  html_document: default
+---
+#Datasource:https://www.kaggle.com/datasets/nelgiriyewithana/global-weather-repository
+
+```{r}
+s_file <-read.csv("C:/Users/snnra/Downloads/GlobalWeatherRepository.csv")
+
+s_file
+```
+#descriptive statistics for numeric variable
+
+```{r}
+summary(s_file)
+
+mean(s_file$temperature_celsius)
+
+median(s_file$temperature_celsius)
+
+sd(s_file$temperature_celsius)
+
+var(s_file$temperature_celsius)
+
+min(s_file$temperature_celsius)
+
+max(s_file$temperature_celsius)
+
+
+str(s_file$temperature_celsius)
+
+```
+#descriptive statistics for categorical variables
+
+```{r}
+table(s_file$location_name)
+
+table(s_file$timezone)
+
+
+str(s_file$location_name)
+```
+#transforming variables
+
+```{r}
+log(s_file$wind_mph)
+
+log(s_file$wind_kph)
+
+s<-s_file$wind_mph-s_file$wind_kph-max(s_file$wind_mph)/min(s_file$wind_kph)
+
+s
+```
+#plotting variable
+
+```{r}
+hist(s_file$temperature_celsius,main = "HISTOGRAM OF TEMPERATURE")
+```
+#scatterplot of 2 variables
+
+```{r}
+plot(s_file$wind_mph,s_file$wind_kph,main = "Scatterplot")
+```
+
+
+
