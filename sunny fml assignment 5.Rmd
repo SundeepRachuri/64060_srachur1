@@ -1,0 +1,238 @@
+---
+title: "FML assignment cereals.csv"
+author: "Sundeep rachuri"
+date: "2023-12-04"
+output: html_document
+---
+
+```{r}
+#library load
+
+library(cluster)
+library(caret)
+library(dendextend)
+```
+
+```{r}
+#load library
+library(knitr)
+library(factoextra)
+```
+
+```{r}
+#download and import dataset
+data_set <- read.csv("C:/Users/DELL/Downloads/Cereals.csv")
+
+# Extract columns 4 to 16 from the 'data_set' dataset and store them in a new data frame 'data_set'
+data_set <- data.frame(data_set[, 4:16])
+```
+
+```{r}
+#Removing the missing values from the data
+data_set <- na.omit(data_set)
+##Data normalization and data scaling
+cereals_normalization <- scale(data_set)
+
+```
+
+```{r}
+#now cluster with help of euclideandistance clustering form
+EuclideanDistance <- dist(cereals_normalization, method = "euclidean")
+hierarchical.clustering_done <- hclust(EuclideanDistance, method = "complete")
+
+#plotting the dendogram
+plot(hierarchical.clustering_done, cex = 0.7, hang = -1)
+```
+
+```{r}
+##Using agnes() function to perform clustering with single, complete,average, ward linkages respectively.
+
+hierarchical.clustering_single <- agnes(cereals_normalization, method = "single")
+hierarchical.clustering_complete <- agnes(cereals_normalization, method = "complete")
+hierarchical.clustering_average <- agnes(cereals_normalization, method = "average")
+hierarchical.clustering_ward <- agnes(cereals_normalization, method = "ward")
+```
+
+```{r}
+# printing the value of the 'ac' attribute for the hierarchical clustering_single linkage
+print(hierarchical.clustering_single$ac)
+```
+
+```{r}
+print(hierarchical.clustering_complete$ac)
+```
+```{r}
+# printing 'ac' attribute value of the hierarchical clustering_average linkage
+print(hierarchical.clustering_average$ac)
+```
+
+```{r}
+# printing 'ac' attribute value of the hierarchical clustering_ward linkage
+print(hierarchical.clustering_ward$ac)
+```
+
+```{r}
+# Using the Ward approach, plotting the dendrogram using the pltree function from the hierarchical clustering result
+pltree(hierarchical.clustering_ward, cex = 0.7, hang = -1, main = "Dendrogram of agnes (Using Ward linkage)")
+
+# Drawing rectangles around clusters to highlight them (in this case, k = 5 clusters)
+rect.hclust(hierarchical.clustering_ward, k = 5, border = 1:4)
+```
+
+```{r}
+# Assigning cluster labels to each observation using cutree function based on Ward's hierarchical clustering with k=5 clusters
+Cluster1 <- cutree(hierarchical.clustering_ward, k=5)
+
+# Creating a new dataframe (dataframe2) combining the original data (cereals_normalization) and the cluster labels
+dataframe2 <- as.data.frame(cbind(cereals_normalization,Cluster1))
+```
+
+```{r}
+#Once we have the distance calculated, we will select five clusters. Establishing Divides
+
+set.seed(123)
+# Creating Partition1 by selecting rows 1 to 50 from the data_set dataset
+Partition1 <- data_set[1:50,]
+# Creating Partition2 by selecting rows 51 to 74 from the data_set dataset
+Partition2 <- data_set[51:74,]
+```
+
+```{r}
+#Performing hierarchical Clustering,consedering k = 5 for the given linkages single, complete, average and ward respectively.
+AG_single <- agnes(scale(Partition1), method = "single")
+AG_complete <- agnes(scale(Partition1), method = "complete")
+AG_average <- agnes(scale(Partition1), method = "average")
+AG_ward <- agnes(scale(Partition1), method = "ward")
+
+#Combining the outcomes of several hierarchical clustering techniques (single, complete, average, and ward linkages, respectively) for the 'ac' attribute
+
+cbind(single=AG_single$ac , complete=AG_complete$ac , average= AG_average$ac , ward= AG_ward$ac)
+```
+```{r}
+# Plotting the dendrogram using pltree function for hierarchical clustering result (AG_ward) with specified parameters
+pltree(AG_ward, cex = 0.6, hang = -1, main = "Dendogram of Agnes with Partitioned Data (Using Ward linkage)")
+
+# Highlighting clusters by drawing rectangles around clusters (in this case, k = 5 clusters) based on AG_ward result
+rect.hclust(AG_ward, k = 5, border = 1:4)
+```
+```{r}
+# Averaging k=5 clusters in AGNES hierarchical clustering to assign cluster labels to observations
+cluster_2 <- cutree(AG_ward, k = 5)
+```
+
+```{r}
+#centeroids
+# Combining Partition1 and cluster_2 into a new dataframe named 'result'
+result <- as.data.frame(cbind(Partition1, cluster_2))
+
+# Filtering rows in 'result' where the 'cluster_2' column value equals 1
+result[result$cluster_2==1,]
+```
+
+```{r}
+# Calculating the centroid (mean) for the columns of 'result' dataframe where 'cluster_2' column value is equal to 1
+centroid1 <- colMeans(result[result$cluster_2==1,])
+
+# Displaying rows in 'result' dataframe where the 'cluster_2' column value is equal to 2
+result[result$cluster_2==2,]
+```
+```{r}
+# Finding the centroid (mean) for each column in the "result" dataframe where the value of the "cluster_2" column equals 2.
+centroid2 <- colMeans(result[result$cluster_2==2,])
+# Showing rows in the'result' dataframe with a value of 3 in the 'cluster_2' column
+result[result$cluster_2==3,]
+```
+```{r}
+# Calculating the centroid (mean) for the columns of 'result' dataframe where 'cluster_2' column value is equal to 3
+centroid3 <- colMeans(result[result$cluster_2==3,])
+# Displaying rows in 'result' dataframe where the 'cluster_2' column value is equal to 4
+result[result$cluster_2==4,]
+```
+```{r}
+# Calculating the centroid (mean) for the columns of 'result' dataframe where 'cluster_2' column value is equal to 4
+centroid4 <- colMeans(result[result$cluster_2==4,])
+# Combining centroids for different clusters into a matrix and then binding them row-wise
+centroids <- rbind(centroid1, centroid2, centroid3, centroid4)
+# Creating a new dataframe 'x2' by combining centroids' data (excluding the 14th column) with 'Partition2'
+x2 <- as.data.frame(rbind(centroids[,-14], Partition2))
+```
+
+```{r}
+#Determining the Distance #Using the get_dist function, determine the distances between points in 'x2'.
+Distance1 <- dist(x2)
+# Converting the distance object 'Distance1' into a matrix
+Matrix_1 <- as.matrix(Distance1)
+# Creating a dataframe 'dataframe1' to store data and cluster assignments
+dataframe1 <- data.frame(data=seq(1,nrow(Partition2),1), Clusters = rep(0,nrow(Partition2)))
+# Looping through each row of Partition2 to assign clusters based on minimum distances
+for(i in 1:nrow(Partition2))
+{dataframe1[i,2] <- which.min(Matrix_1[i+4, 1:4])}
+# Displaying the resulting dataframe1 containing data indices and assigned clusters
+dataframe1
+```
+```{r}
+# Merging the Clusters values from dataframe1 with the Cluster1 values from dataframe2 for rows 51 to 74.
+cbind(dataframe2$Cluster1[51:74], dataframe1$Clusters)
+```
+```{r}
+# Making a table to compare the equivalence of the Clusters values from Dataframe1 and the Cluster1 values from Dataframe2 (rows 51 to 74).
+table(dataframe2$Cluster1[51:74] == dataframe1$Clusters)
+```
+
+# The model appears to be only partially stable based on the 12 TRUE and 12 FALSE findings.
+
+# The elementary public schools would like to choose a brand of cereal to be served every day in their cafeterias. Every day a different cereal is offered, but each one should promote a diet that is well-balanced. In order to finish this challenge, you have to find a group of "healthy cereals." Does the data need to be uniformed? If not, how ought they to be employed in the cluster analysis?
+
+```{r}
+# Creating a copy of the 'data_set' dataframe named 'HealthyCereals'
+HealthyCereals <-data_set
+# Creating a new dataframe 'HealthyCereals_new' by removing rows with missing values from 'HealthyCereals'
+HealthyCereals_new <- na.omit(HealthyCereals)
+# Combining 'HealthyCereals_new' dataframe with 'Cluster1' obtained from previous operations into 'HealthyCluster'
+HealthyCluster <- cbind(HealthyCereals_new, Cluster1)
+```
+
+```{r}
+# Displaying rows in 'HealthyCluster' dataframe where the 'Cluster1' column value is equal to 1
+HealthyCluster[HealthyCluster$Cluster1==1,]
+```
+
+```{r}
+# 'HealthyCluster' dataframe entries where the value of the 'Cluster1' column equals two are displayed
+HealthyCluster[HealthyCluster$Cluster1==2,]
+```
+
+```{r}
+# when the value of the 'Cluster1' column is three, the 'HealthyCluster' dataframe entries
+HealthyCluster[HealthyCluster$Cluster1==3,]
+```
+
+```{r}
+# showing entries from the 'HealthyClust' dataframe with a value of 4 in the 'Cluster1' column
+HealthyCluster[HealthyCluster$Cluster1==4,]
+```
+
+```{r}
+#To find the best cluster, use the #Mean ratings.
+# Finding the average of the 'rating' values for the rows in the 'HealthyCluster' dataframe with a value of 1 in the 'Cluster1' column
+mean(HealthyCluster[HealthyCluster$Cluster1==1,"rating"])
+```
+
+```{r}
+#The 'rating' values for rows in the 'HealthyCluster' dataframe whose 'Cluster1' column value is equal to two are averaged.
+mean(HealthyCluster[HealthyCluster$Cluster1==2,"rating"])
+```
+
+```{r}
+# Finding the average of the "rating" values for the rows in the "HealthyCluster" dataframe where the value of the "Cluster1" column is 3.
+mean(HealthyCluster[HealthyCluster$Cluster1==3,"rating"])
+```
+
+```{r}
+#Determining the row average for the 'rating' values in the 'HealthyCluster' dataframe where the 'Cluster1' column has a value of 4.
+mean(HealthyCluster[HealthyCluster$Cluster1==4,"rating"])
+```
+#We can take into consideration cluster 1, as it has the highest mean ratings (73.84446).
+
+
+
